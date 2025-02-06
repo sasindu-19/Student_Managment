@@ -135,6 +135,16 @@
             align-items: center;
             justify-content: center;
         }
+        select {
+            background-color: #222; /* Dark background */
+            color: white; /* White text */
+            border: 1px solid #444; /* Optional: Border for better visibility */
+        }
+
+        option {
+            background-color: #222; /* Match the dropdown background */
+            color: white; /* White text */
+        }
 
         /* Cards Grid */
         .cards-grid {
@@ -971,71 +981,95 @@ function deleteTeacher(teacherId) {
 // Function to show edit form with current teacher data
 function editTeacher(teacherId) {
     const teacherRef = ref(database, `Teachers/${teacherId}`);
-    
+    const coursesRef = ref(database, 'Courses'); // Get course list
+
     // Get current teacher data
     get(teacherRef).then((snapshot) => {
         const teacher = snapshot.val();
-        
-        // Create and show edit form
-        const mainContent = document.querySelector('.main-content');
-        mainContent.innerHTML = `
-            <div class="header">
-                <h2>Edit Teacher</h2>
-                <button class="back-btn" onclick="loadTeacherView()">Back to List</button>
-            </div>
-            <div class="form-container">
-                <form id="editTeacherForm" class="teacher-form">
-                    <div class="form-group">
-                        <label for="name">Name:</label>
-                        <input type="text" id="name" value="${teacher.name || ''}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="nic">NIC:</label>
-                        <input type="text" id="nic" value="${teacher.nic || ''}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="address">Address:</label>
-                        <textarea id="address" required>${teacher.address || ''}</textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="dob">Date of Birth:</label>
-                        <input type="text" id="dob" value="${teacher.dob || ''}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="phone">Phone:</label>
-                        <input type="tel" id="phone" value="${teacher.phone || ''}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="gender">Gender:</label>
-                        <select id="gender" required>
-                            <option value="Male" ${teacher.gender === 'Male' ? 'selected' : ''}>Male</option>
-                            <option value="Female" ${teacher.gender === 'Female' ? 'selected' : ''}>Female</option>
-                            <option value="Other" ${teacher.gender === 'Other' ? 'selected' : ''}>Other</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="course">Course:</label>
-                        <input type="text" id="course" value="${teacher.course || ''}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Email:</label>
-                        <input type="email" id="email" value="${teacher.email || ''}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="password">New Password (leave blank to keep current):</label>
-                        <input type="password" id="password">
-                    </div>
-                    <button type="submit" class="submit-btn">Update Teacher</button>
-                </form>
-            </div>
-        `;
 
-        // Add submit handler for the edit form
-        const editForm = document.getElementById('editTeacherForm');
-        editForm.onsubmit = (e) => {
-            e.preventDefault();
-            updateTeacher(teacherId, teacher.email);
-        };
+        // Get course list from database
+        get(coursesRef).then((courseSnapshot) => {
+            const courses = courseSnapshot.val();
+            let courseOptions = '';
+
+            if (courses) {
+                Object.values(courses).forEach(course => {
+                    courseOptions += `
+                        <option value="${course.courseName}" ${teacher.course === course.courseName ? 'selected' : ''}>
+                            ${course.courseName}
+                        </option>
+                    `;
+                });
+            } else {
+                courseOptions = '<option value="">No courses available</option>';
+            }
+
+            // Create and show edit form
+            const mainContent = document.querySelector('.main-content');
+            mainContent.innerHTML = `
+                <div class="header">
+                    <h2>Edit Teacher</h2>
+                    <button class="back-btn" onclick="loadTeacherView()">Back to List</button>
+                </div>
+                <div class="form-container">
+                    <form id="editTeacherForm" class="teacher-form">
+                        <div class="form-group">
+                            <label for="name">Name:</label>
+                            <input type="text" id="name" value="${teacher.name || ''}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="nic">NIC:</label>
+                            <input type="text" id="nic" value="${teacher.nic || ''}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="address">Address:</label>
+                            <textarea id="address" required>${teacher.address || ''}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="dob">Date of Birth:</label>
+                            <input type="text" id="dob" value="${teacher.dob || ''}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone:</label>
+                            <input type="tel" id="phone" value="${teacher.phone || ''}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="gender">Gender:</label>
+                            <select id="gender" required>
+                                <option value="Male" ${teacher.gender === 'Male' ? 'selected' : ''}>Male</option>
+                                <option value="Female" ${teacher.gender === 'Female' ? 'selected' : ''}>Female</option>
+                                <option value="Other" ${teacher.gender === 'Other' ? 'selected' : ''}>Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="course">Course:</label>
+                            <select id="course" required>
+                                ${courseOptions}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email:</label>
+                            <input type="email" id="email" value="${teacher.email || ''}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">New Password (leave blank to keep current):</label>
+                            <input type="password" id="password">
+                        </div>
+                        <button type="submit" class="submit-btn">Update Teacher</button>
+                    </form>
+                </div>
+            `;
+
+            // Add submit handler for the edit form
+            const editForm = document.getElementById('editTeacherForm');
+            editForm.onsubmit = (e) => {
+                e.preventDefault();
+                updateTeacher(teacherId, teacher.email);
+            };
+        }).catch((error) => {
+            console.error("Error loading courses:", error);
+            alert('Failed to load courses.');
+        });
     }).catch((error) => {
         console.error("Error loading teacher data:", error);
         alert('Failed to load teacher data for editing');
@@ -1185,63 +1219,87 @@ function deleteStudent(groupId, studentId) {
 // Function to show edit form with current student data
 function editStudent(groupId, studentId) {
     const studentRef = ref(database, `students/${groupId}/${studentId}`);
-    
+    const coursesRef = ref(database, 'Courses'); // Get course list
+
     // Get current student data
     get(studentRef).then((snapshot) => {
         const student = snapshot.val();
-        
-        // Create and show edit form
-        const mainContent = document.querySelector('.main-content');
-        mainContent.innerHTML = `
-            <div class="header">
-                <h2>Edit Student</h2>
-                <button class="back-btn" onclick="loadStudentView()">Back to List</button>
-            </div>
-            <div class="form-container">
-                <form id="editStudentForm" class="student-form">
-                    <div class="form-group">
-                        <label for="name">Name:</label>
-                        <input type="text" id="name" value="${student.name || ''}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="nic">NIC:</label>
-                        <input type="text" id="nic" value="${student.nic || ''}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="address">Address:</label>
-                        <textarea id="address" required>${student.address || ''}</textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="dob">Date of Birth:</label>
-                        <input type="text   " id="dob" value="${student.dob || ''}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="phone">Phone:</label>
-                        <input type="tel" id="phone" value="${student.phone || ''}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="gender">Gender:</label>
-                        <select id="gender" required>
-                            <option value="Male" ${student.gender === 'Male' ? 'selected' : ''}>Male</option>
-                            <option value="Female" ${student.gender === 'Female' ? 'selected' : ''}>Female</option>
-                            <option value="Other" ${student.gender === 'Other' ? 'selected' : ''}>Other</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="course">Course:</label>
-                        <input type="text" id="course" value="${student.course || ''}" required>
-                    </div>
-                    <button type="submit" class="submit-btn">Update Student</button>
-                </form>
-            </div>
-        `;
 
-        // Add submit handler for the edit form
-        const editForm = document.getElementById('editStudentForm');
-        editForm.onsubmit = (e) => {
-            e.preventDefault();
-            updateStudent(groupId, studentId);
-        };
+        // Get course list from database
+        get(coursesRef).then((courseSnapshot) => {
+            const courses = courseSnapshot.val();
+            let courseOptions = '';
+
+            if (courses) {
+                Object.values(courses).forEach(course => {
+                    courseOptions += `
+                        <option value="${course.courseName}" ${student.course === course.courseName ? 'selected' : ''}>
+                            ${course.courseName}
+                        </option>
+                    `;
+                });
+            } else {
+                courseOptions = '<option value="">No courses available</option>';
+            }
+
+            // Create and show edit form
+            const mainContent = document.querySelector('.main-content');
+            mainContent.innerHTML = `
+                <div class="header">
+                    <h2>Edit Student</h2>
+                    <button class="back-btn" onclick="loadStudentView()">Back to List</button>
+                </div>
+                <div class="form-container">
+                    <form id="editStudentForm" class="student-form">
+                        <div class="form-group">
+                            <label for="name">Name:</label>
+                            <input type="text" id="name" value="${student.name || ''}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="nic">NIC:</label>
+                            <input type="text" id="nic" value="${student.nic || ''}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="address">Address:</label>
+                            <textarea id="address" required>${student.address || ''}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="dob">Date of Birth:</label>
+                            <input type="text" id="dob" value="${student.dob || ''}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone:</label>
+                            <input type="tel" id="phone" value="${student.phone || ''}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="gender">Gender:</label>
+                            <select id="gender" required>
+                                <option value="Male" ${student.gender === 'Male' ? 'selected' : ''}>Male</option>
+                                <option value="Female" ${student.gender === 'Female' ? 'selected' : ''}>Female</option>
+                                <option value="Other" ${student.gender === 'Other' ? 'selected' : ''}>Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="course">Course:</label>
+                            <select id="course" required>
+                                ${courseOptions}
+                            </select>
+                        </div>
+                        <button type="submit" class="submit-btn">Update Student</button>
+                    </form>
+                </div>
+            `;
+
+            // Add submit handler for the edit form
+            const editForm = document.getElementById('editStudentForm');
+            editForm.onsubmit = (e) => {
+                e.preventDefault();
+                updateStudent(groupId, studentId);
+            };
+        }).catch((error) => {
+            console.error("Error loading courses:", error);
+            alert('Failed to load courses.');
+        });
     }).catch((error) => {
         console.error("Error loading student data:", error);
         alert('Failed to load student data for editing');
