@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+        * {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background: #040611;
+            background-image: 
+                radial-gradient(circle at 20% 20%, #1e2451 0%, transparent 30%),
+                radial-gradient(circle at 80% 80%, #1e2451 0%, transparent 30%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h60v60H0z' fill='none'/%3E%3Cpath d='M1 1h1v1H1V1zm2 0h1v1H3V1zm2 0h1v1H5V1z' fill='rgba(255,255,255,0.05)' fill-opacity='0.1'/%3E%3C/svg%3E");
+            opacity: 0.5;
+            animation: grain 8s steps(10) infinite;
+        }
+
+        @keyframes grain {
+            0%, 100% { transform: translate(0, 0) }
+            10% { transform: translate(-5%, -5%) }
+            20% { transform: translate(-10%, 5%) }
+            30% { transform: translate(5%, -10%) }
+            40% { transform: translate(-5%, 15%) }
+            50% { transform: translate(-10%, 5%) }
+            60% { transform: translate(15%, 0) }
+            70% { transform: translate(0, 10%) }
+            80% { transform: translate(-15%, 0) }
+            90% { transform: translate(10%, 5%) }
+        }
+
+        .main {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 50px 50px;
+            width: 100%;
+            max-width: 660px;
+            position: relative;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .main::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(45deg, 
+                rgba(255,255,255,0) 0%,
+                rgba(255,255,255,0.03) 50%,
+                rgba(255,255,255,0) 100%);
+            transform: translateZ(-1px);
+            border-radius: 30px;
+            pointer-events: none;
+        }
+
+        h1 {
+            color: white;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 40px;
+            text-align: center;
+            background: linear-gradient(135deg, #fff 0%, #a5a5a5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+        }
+
+        .input-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .username, .password {
+            width: 88%;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 16px;
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .input-border {
+            position: absolute;
+            inset: 0;
+            border: 2px solid transparent;
+            border-radius: 16px;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .username:focus, .password:focus {
+            background: rgba(255, 255, 255, 0.03);
+            outline: none;
+        }
+
+        .username:focus + .input-border, 
+        .password:focus + .input-border {
+            border-color: #4f46e5;
+            box-shadow: 0 0 20px rgba(79, 70, 229, 0.3);
+        }
+
+        .error-message {
+            color: #ef4444;
+            font-size: 14px;
+            margin-top: 8px;
+            margin-left: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .error-message.visible {
+            opacity: 1;
+        }
+
+        .input-wrapper.error input {
+            border-color: #ef4444;
+        }
+
+        .input-wrapper.error .input-border {
+            border-color: #ef4444;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
+        }
+
+        .button {
+            width: 100%;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 20px;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 30px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .button.loading {
+            background: #3f37b5;
+            cursor: not-allowed;
+        }
+
+        .button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(255,255,255,0.2) 50%,
+                transparent 100%
+            );
+            transition: left 0.5s ease;
+        }
+
+        .button:not(.loading):hover {
+            transform: translateY(-2px);
+            background: #5b54e6;
+            box-shadow: 0 10px 20px -10px rgba(79, 70, 229, 0.5);
+        }
+
+        .button:hover::before {
+            left: 100%;
+        }
+
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            margin-left: 10px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+
+        .button.loading .spinner {
+            display: block;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .alert.success {
+            background: #10b981;
+        }
+
+        .alert.error {
+            background: #ef4444;
+        }
+
+        .alert.show {
+            transform: translateX(0);
+        }
+
+        p {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 30px;
+        }
+
+        a {
+            color: #4f46e5;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #4f46e5;
+            transition: width 0.3s ease;
+        }
+
+        a:hover::after {
+            width: 100%;
+        }
+
+        ::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .floating-shapes div {
+            position: absolute;
+            pointer-events: none;
+            opacity: 0.1;
+        }
+
+        .shape1 {
+            top: -50px;
+            left: -50px;
+            width: 100px;
+            height: 100px;
+            background: #4f46e5;
+            border-radius: 28% 72% 70% 30% / 53% 51% 49% 47%;
+            animation: float1 8s ease-in-out infinite;
+        }
+
+        .shape2 {
+            bottom: -30px;
+            right: -30px;
+            width: 80px;
+            height: 80px;
+            background: #4f46e5;
+            border-radius: 41% 59% 41% 59% / 41% 59% 41% 59%;
+            animation: float2 9s ease-in-out infinite;
+        }
+
+        @keyframes float1 {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(20px, 20px) rotate(180deg); }
+        }
+
+        @keyframes float2 {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-20px, -20px) rotate(-180deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="alert" class="alert" role="alert"></div>
+    <form id="loginForm" novalidate>
+        <div class="main">
+            <div class="floating-shapes">
+                <div class="shape1"></div>
+                <div class="shape2"></div>
+            </div>
+            <h1>Welcome</h1>
+            <div class="input-wrapper">
+                <input type="email" class="username" id="username" placeholder="Email / username" autocomplete="email">
+                <div class="input-border"></div>
+                <div class="error-message" id="username-error"></div>
+            </div>
+            <div class="input-wrapper">
+                <input type="password" class="password" id="password" placeholder="Password" autocomplete="current-password">
+                <div class="input-border"></div>
+                <div class="error-message" id="password-error"></div>
+            </div>
+            <button type="submit" class="button" id="submit">
+                <span>Login</span>
+                <div class="spinner"></div>
+            </button>
+   
+            <!-- <p>New here? <a href="registration.html">Register.</a></p> -->
+        </div>
+    </form>
+
+    <script type="module" src="index.js" defer></script>
+</body>
+</html>

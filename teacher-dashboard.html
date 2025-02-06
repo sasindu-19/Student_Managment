@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: #0a0b1a;
+            background: radial-gradient(circle at top left, #1a1f4d 0%, #0a0b1a 50%),
+                        radial-gradient(circle at bottom right, #1a1f4d 0%, #0a0b1a 50%);
+            color: rgba(255, 255, 255, 0.9);
+            min-height: 100vh;
+        }
+
+        .dashboard {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 3rem;
+            color: white;
+            text-align: center;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-section-title {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            padding-left: 1rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem 1rem;
+            margin: 0.3rem 0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .logout-btn {
+            margin-top: auto;
+            background: rgba(255, 59, 59, 0.1);
+            color: rgb(255, 59, 59);
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .search-bar {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 0.8rem 1.5rem;
+            width: 300px;
+            color: white;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .activity-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .activity-table th, .activity-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .activity-table th {
+            background: rgba(255, 255, 255, 0.05);
+            font-weight: 500;
+        }
+
+        .add-btn {
+            background: #4ade80;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .add-btn:hover {
+            opacity: 0.9;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #0f1122;
+            padding: 2rem;
+            border-radius: 16px;
+            width: 500px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
+
+        .form-actions button {
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">TeacherMS</div>
+            
+            <!-- Dashboard Section -->
+            <div class="nav-section">
+                <div class="nav-section-title">Dashboard</div>
+                <div class="nav-item active">📊 Overview</div>
+            </div>
+
+            <!-- Manage Section -->
+            <div class="nav-section">
+                <div class="nav-section-title">Manage</div>
+                <div class="nav-item">👥 View Students</div>
+                <div class="nav-item">📚 View Courses</div>
+                <div class="nav-item">➕ Add Student</div>
+            </div>
+
+            <!-- Profile Section -->
+            <div class="nav-section">
+                <div class="nav-section-title">Account</div>
+                <div class="nav-item">👤 My Profile</div>
+                <div class="nav-item">⚙️ Settings</div>
+            </div>
+
+            <!-- Logout Button -->
+            <div class="logout-btn">
+                🚪 Logout
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <input type="text" class="search-bar" placeholder="Search students or courses...">
+                <div class="user-profile">
+                    <div class="user-avatar">T</div>
+                    <span>Teacher</span>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-title">Total Students</div>
+                    <div class="card-value" id="total-students">Loading...</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Active Courses</div>
+                    <div class="card-value" id="total-courses">Loading...</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Average Grade</div>
+                    <div class="card-value">85.4%</div>
+                </div>
+            </div>
+
+            <!-- Student Table -->
+            <table class="activity-table">
+                <thead>
+                    <tr>
+                        <th>Student Name</th>
+                        <th>Course</th>
+                        <th>Enrollment Date</th>
+                        <th>Grade</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="studentTableBody">
+                    <!-- Student data will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Your Firebase configuration and initialization code here
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            // Navigation handling
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    document.querySelectorAll('.nav-item').forEach(navItem => {
+                        navItem.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    // Handle navigation based on clicked item
+                    const itemText = this.textContent.trim();
+                    switch(itemText) {
+                        case '👥 View Students':
+                            loadStudentView();
+                            break;
+                        case '📚 View Courses':
+                            loadCourseView();
+                            break;
+                        case '➕ Add Student':
+                            showAddStudentForm();
+                            break;
+                    }
+                });
+            });
+
+            // Logout handler
+            document.querySelector('.logout-btn').addEventListener('click', () => {
+                if (confirm('Are you sure you want to logout?')) {
+                    window.location.href = 'index.html';
+                }
+            });
+        });
+
+        function loadStudentView() {
+            // Implementation for loading student view
+        }
+
+        function loadCourseView() {
+            // Implementation for loading course view
+        }
+
+        function showAddStudentForm() {
+            const modal = `
+                <div class="modal">
+                    <div class="modal-content">
+                        <h2>Add New Student</h2>
+                        <form id="addStudentForm">
+                            <div class="form-group">
+                                <label>Full Name</label>
+                                <input type="text" name="name" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" name="email" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Course</label>
+                                <select name="course" required>
+                                    <option value="">Select Course</option>
+                                    <option value="course1">Course 1</option>
+                                    <option value="course2">Course 2</option>
+                                </select>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="add-btn">Add Student</button>
+                                <button type="button" onclick="closeModal()">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modal);
+            
+            document.getElementById('addStudentForm').addEventListener('submit', handleAddStudent);
+        }
+
+        function handleAddStudent(event) {
+            event.preventDefault();
+            // Implementation for adding student to database
+            closeModal();
+        }
+
+        function closeModal() {
+            const modal = document.querySelector('.modal');
+            if (modal) modal.remove();
+        }
+    </script>
+</body>
+</html>
